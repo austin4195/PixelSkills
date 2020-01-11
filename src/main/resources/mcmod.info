@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "pixelskills",
+    "name": "PixelSkills",
+    "description": "Pixelmon skills plugin, highly configurable",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Lypaka"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
