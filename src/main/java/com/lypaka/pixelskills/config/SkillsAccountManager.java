@@ -61,7 +61,6 @@ public class SkillsAccountManager {
             accountConfig.getNode(uuid.toString(), "Skills", "Crafter", "EXP").setValue(0);
             accountConfig.getNode(uuid.toString(), "Skills", "Crafter", "EXP-to-Levelup").setValue(ConfigManager.getConfigNode("Skills", "Crafter", "EXP", "amount of EXP needed to level up to level 2").getInt());
             accountConfig.getNode(uuid.toString(), "Skills", "Crafter", "nextPerkIncreaseLevel").setValue(0);
-            accountConfig.getNode(uuid.toString(), "Skills", "Crafter", "chance at perks").setValue(0);
 
             accountConfig.getNode(uuid.toString(), "Skills", "Fierce Battler", "Level").setValue(1);
             accountConfig.getNode(uuid.toString(), "Skills", "Fierce Battler", "EXP").setValue(0);

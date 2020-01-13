@@ -16,18 +16,26 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.service.economy.Currency;
+import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -64,6 +72,7 @@ public class PixelSkills {
 
     public static PixelSkills INSTANCE;
     public SkillsAccountManager accountManager;
+
 
     @Listener
     public void onPreInit (GamePreInitializationEvent event) {
@@ -147,8 +156,15 @@ public class PixelSkills {
     }
 
     public void addPoints(String skill, int points, Player player) {
-        accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").getInt() + points);
-        accountManager.saveConfig();
+        if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() != ConfigManager.getConfigNode("Skills", skill, "maxLevel").getInt()) {
+            accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").getInt() + points);
+            accountManager.saveConfig();
+        }
+        if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Next-Reward-Level").isVirtual()) {
+            accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Next-Reward-Level").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() + ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesRewards", "levelInterval (every <level> level)").getInt());
+            accountManager.saveConfig();
+        }
+
     }
 
     public boolean didLevelUp(String skill, Player player) {
@@ -159,51 +175,295 @@ public class PixelSkills {
         }
     }
     public void levelUp(String skill, Player player) {
-        if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").getInt() > (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP-to-Levelup").getInt())) {
+
+        //Moves EXP forward to the next level
+        if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").getInt() > accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP-to-Levelup").getInt()) {
             accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").getInt() - accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP-to-Levelup").getInt());
             accountManager.saveConfig();
         } else {
             accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP").setValue(0);
             accountManager.saveConfig();
         }
-        accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP-to-Levelup").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() * ConfigManager.getConfigNode("Skills", skill, "EXP", "EXP needed increase interval (how much EXP to level up goes up on each level (if amount needed = 1, plugin will +1 to it), multiplies by:").getInt());
+
+        //Moves player's level up 1
         accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() + 1);
-        setNextPerkIncreaseLevel(skill, player);
         accountManager.saveConfig();
-        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You leveled up your " + skill + " skill to level " + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() + "!"));
-        if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesPossibleExtraRewards").getValue().equals(true)) {
-            if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() == ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesRewards", "levelInterval (every <level> level)").getInt() || accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() % ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesRewards", "levelInterval (every <level> level)").getInt() == 0) {
-                Random rand = new Random();
-                int RNG = rand.nextInt(ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesRewards", "chance to give rewards at interval (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                if (RNG == 1) {
-                    int prize = rand.nextInt(ConfigManager.getConfigNode("Skills", skill, "Rewards", "possibleRewards", "numberOf").getInt() - 1) + 1;
-                    if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "numberOf", "increases by", "number").getValue() != null) {
-                        if (Objects.equals(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "type (item/Pokemon/money)").getString(), "item")) {
-                            if (Objects.equals(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "numberOf", "increases by", "modifier (add/multiply/false) (if false, sets number to give at each level)").getValue(), false)) {
-                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "prize").getString() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "numberOf", "increases by", "number").getInt());
-                            } else if (Objects.equals(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "numberOf", "increases by", "modifier (add/multiply/false) (if false, sets number to give at each level)").getValue(), "multiply")) {
-                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "prize").getString() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "numberOf", "increases by", "number").getInt() * accountManager.getAccountsConfig().getNode("Skills", skill, "Level").getInt());
-                            } else if (Objects.equals(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "numberOf", "increases by", "modifier (add/multiply/false) (if false, sets number to give at each level)").getValue(), "add")) {
-                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "prize").getString() + " " + (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", prize, "reward", "numberOf", "increases by", "number").getInt() + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt()));
+
+        //Sets the required EXP for the next levelup
+        accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "EXP-to-Levelup").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() * ConfigManager.getConfigNode("Skills", skill, "EXP", "EXP needed increase interval (how much EXP to level up goes up on each level (if amount needed = 1, plugin will +1 to it), multiplies by:").getInt());
+        accountManager.saveConfig();
+
+        //Lets the player know they leveled up
+        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your " + skill + " skill has increased to level " + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() + "!"));
+
+        //Perks
+        if (ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "isEnabled").getBoolean()) {
+            if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() == ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
+                    accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "nextPerkIncreaseLevel").getInt()) {
+                switch (ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "modifier mode (add/multiply)").getString()) {
+                    case "add":
+                        int chance = ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "modifier number").getInt();
+                        int newChance = 100 - chance;
+                        accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").setValue(newChance - accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").getInt());
+                        accountManager.saveConfig();
+                        break;
+                    case "multiply":
+                        int chance2 = ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "modifier number").getInt();
+                        int newChance2 = 100 / chance2;
+                        if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").getInt() == 0) {
+                            accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").setValue(newChance2 - 1);
+                            accountManager.saveConfig();
+                        } else {
+                            if (newChance2 >= accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").getInt()) {
+                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").setValue(newChance2 - accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").getInt());
+                                accountManager.saveConfig();
+                            } else {
+                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").getInt() - newChance2);
+                                accountManager.saveConfig();
+                            }
+
+                        }
+                        break;
+                }
+                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "nextPerkIncreaseLevel").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() + ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt());
+                accountManager.saveConfig();
+            }
+        }
+
+        //Rewards
+        //Checks if rewards for the skill are enabled
+        if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesPossibleExtraRewards").getBoolean()) {
+            //Checks if player's current level is a level that rewards are given on
+            if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Next-Reward-Level").getInt()) {
+                //Sets the new Next-Reward-Level value
+                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Next-Reward-Level").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() + ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesRewards", "levelInterval (every <level> level)").getInt());
+                accountManager.saveConfig();
+                //Checks the chance of rewards being given
+                if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesRewards", "chance to give rewards at interval (1/<number>)").getInt() == 1) {
+                    for (int n = 1; n <= ConfigManager.getConfigNode("Skills", skill, "Rewards", "possibleRewards", "numberOf").getInt(); n++) {
+                        int rewardQuantity = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "number").getInt();
+                        //Checks the type of reward
+                        switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "type (item/Pokemon/money/command)").getString()) {
+                            case "item":
+                                //Checks the quantity of the reward
+                                switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "modifier (add/multiply/false)").getString()) {
+                                    case "false":
+                                        //Checks to see if there are multiple items in the reward list
+                                        if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                            String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity);
+                                            }
+                                        } else {
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString() + " " + rewardQuantity);
+                                        }
+                                        break;
+                                    case "add":
+                                        if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                            String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                            }
+                                        } else {
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString() + " " + rewardQuantity + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                        }
+                                        break;
+                                    case "multiply":
+                                        if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                            String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                            }
+                                        } else {
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString() + " " + rewardQuantity * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                        }
+                                        break;
+                                }
+                                break;
+                            case "Pokemon":
+                                //Checks the quantity of the reward
+                                switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "modifier (add/multiply/false)").getString()) {
+                                    case "false":
+                                    case "add":
+                                    case "multiply":
+                                        //Checks to see if there are multiple items in the reward list
+                                        if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                            String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "pokegive " + player.getName() + " " + rewardList[r]);
+                                            }
+                                        } else {
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "pokegive " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString());
+                                        }
+                                        break;
+                                }
+                                break;
+                            case "money":
+                                EventContext eventContext = EventContext.builder().add(EventContextKeys.PLUGIN, container).build();
+                                Optional<EconomyService> econ = Sponge.getServiceManager().provide(EconomyService.class);
+                                //Checks the quantity of the reward
+                                switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "modifier (add/multiply/false)").getString()) {
+                                    case "false":
+                                        if (econ.isPresent()) {
+                                            Optional<UniqueAccount> a = econ.get().getOrCreateAccount(player.getUniqueId());
+                                            Currency defaultCur = econ.get().getDefaultCurrency();
+                                            a.get().deposit(defaultCur, BigDecimal.valueOf(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getInt()), Cause.of(eventContext, container));
+                                        }
+                                        break;
+                                    case "add":
+                                        if (econ.isPresent()) {
+                                            Optional<UniqueAccount> a = econ.get().getOrCreateAccount(player.getUniqueId());
+                                            Currency defaultCur = econ.get().getDefaultCurrency();
+                                            a.get().deposit(defaultCur, BigDecimal.valueOf(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getInt() + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skill", skill, "Level").getInt()), Cause.of(eventContext, container));
+                                        }
+                                        break;
+                                    case "multiply":
+                                        if (econ.isPresent()) {
+                                            Optional<UniqueAccount> a = econ.get().getOrCreateAccount(player.getUniqueId());
+                                            Currency defaultCur = econ.get().getDefaultCurrency();
+                                            a.get().deposit(defaultCur, BigDecimal.valueOf(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getInt() * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skill", skill, "Level").getInt()), Cause.of(eventContext, container));
+                                        }
+                                        break;
+                                }
+                                break;
+                            case "command":
+                                if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                    String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                    for (int c = 0; c < rewardList.length - 1; c++) {
+                                        if (rewardList[c].contains("%player%")) {
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), rewardList[c].replace("%player%", player.getName()));
+                                        } else {
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), rewardList[c]);
+                                        }
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You received rewards for leveling up!"));
+                } else {
+                    Random rand = new Random();
+                    int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", skill, "Rewards", "givesRewards", "chance to give rewards at interval (1/<number>)").getInt() - 1) + 1;
+                    if (rng == 1) {
+                        for (int n = 1; n <= ConfigManager.getConfigNode("Skills", skill, "Rewards", "possibleRewards", "numberOf").getInt(); n++) {
+                            int rewardQuantity = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "number").getInt();
+                            //Checks the type of reward
+                            switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "type (item/Pokemon/money/command)").getString()) {
+                                case "item":
+                                    //Checks the quantity of the reward
+                                    switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "modifier (add/multiply/false)").getString()) {
+                                        case "false":
+                                            //Checks to see if there are multiple items in the reward list
+                                            if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                                String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity);
+                                                }
+                                            } else {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString() + " " + rewardQuantity);
+                                            }
+                                            break;
+                                        case "add":
+                                            if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                                String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                                }
+                                            } else {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString() + " " + rewardQuantity + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                            }
+                                            break;
+                                        case "multiply":
+                                            if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                                String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                                }
+                                            } else {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString() + " " + rewardQuantity * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
+                                            }
+                                            break;
+                                    }
+                                    break;
+                                case "Pokemon":
+                                    //Checks the quantity of the reward
+                                    switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "modifier (add/multiply/false)").getString()) {
+                                        case "false":
+                                        case "add":
+                                        case "multiply":
+                                            //Checks to see if there are multiple items in the reward list
+                                            if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                                String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
+                                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "pokegive " + player.getName() + " " + rewardList[r]);
+                                                }
+                                            } else {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "pokegive " + player.getName() + " " + ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString());
+                                            }
+                                            break;
+                                    }
+                                    break;
+                                case "money":
+                                    EventContext eventContext = EventContext.builder().add(EventContextKeys.PLUGIN, container).build();
+                                    Optional<EconomyService> econ = Sponge.getServiceManager().provide(EconomyService.class);
+                                    //Checks the quantity of the reward
+                                    switch (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "numberOf", "increases by", "modifier (add/multiply/false)").getString()) {
+                                        case "false":
+                                            if (econ.isPresent()) {
+                                                Optional<UniqueAccount> a = econ.get().getOrCreateAccount(player.getUniqueId());
+                                                Currency defaultCur = econ.get().getDefaultCurrency();
+                                                a.get().deposit(defaultCur, BigDecimal.valueOf(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getInt()), Cause.of(eventContext, container));
+                                            }
+                                            break;
+                                        case "add":
+                                            if (econ.isPresent()) {
+                                                Optional<UniqueAccount> a = econ.get().getOrCreateAccount(player.getUniqueId());
+                                                Currency defaultCur = econ.get().getDefaultCurrency();
+                                                a.get().deposit(defaultCur, BigDecimal.valueOf(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getInt() + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skill", skill, "Level").getInt()), Cause.of(eventContext, container));
+                                            }
+                                            break;
+                                        case "multiply":
+                                            if (econ.isPresent()) {
+                                                Optional<UniqueAccount> a = econ.get().getOrCreateAccount(player.getUniqueId());
+                                                Currency defaultCur = econ.get().getDefaultCurrency();
+                                                a.get().deposit(defaultCur, BigDecimal.valueOf(ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getInt() * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skill", skill, "Level").getInt()), Cause.of(eventContext, container));
+                                            }
+                                            break;
+                                    }
+                                    break;
+                                case "command":
+                                    if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
+                                        String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
+                                        for (int c = 0; c < rewardList.length - 1; c++) {
+                                            if (rewardList[c].contains("%player%")) {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), rewardList[c].replace("%player%", player.getName()));
+                                            } else {
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), rewardList[c]);
+                                            }
+                                        }
+                                    }
+                                    break;
                             }
                         }
+                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You received rewards for leveling up!"));
                     }
                 }
             }
         }
+
+        //Checks for a double level up
         if (didLevelUp(skill, player)) {
             levelUp(skill, player);
         }
     }
 
-    public void setNextPerkIncreaseLevel (String skill, Player player) {
-        //"Skills", "Breeder", "nextPerkIncreaseLevel"
+    private void setNextPerkIncreaseLevel(String skill, Player player) {
         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() == ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "perk", "starts at level").getInt()) {
             accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "nextPerkIncreaseLevel").setValue(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() + ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt());
             accountManager.saveConfig();
             if (Objects.equals(ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance gets higher as level gets higher").getString(), "true")) {
                 int chance = ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt();
-                String mod = ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "modifier mode (add/multiply").getString();
+                String mod = ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "modifier mode (add/multiply)").getString();
                 int num = ConfigManager.getConfigNode("Skills", skill, "Perks", "in-skill perks", "chance", "increased by", "modifier number").getInt();
                 if (Objects.equals(mod, "add")) {
                     accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "chance at perks").setValue(chance + num);
@@ -231,6 +491,13 @@ public class PixelSkills {
                 }
             }
         }
+    }
+
+    public static boolean getIsMaxLevel(String skill, Player player) {
+        if (PixelSkills.INSTANCE.accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() == ConfigManager.getConfigNode("Skills", skill, "maxLevel").getInt()) {
+            return true;
+        }
+        return false;
     }
 
 }
