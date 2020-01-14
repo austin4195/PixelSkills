@@ -39,13 +39,34 @@ public class Archaeologist {
                         plugin.levelUp("Archaeologist", player);
                         if (ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                             if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
-                                    accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt()) {
-                                Random rand = new Random();
-                                if (ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                    int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "chance at perks").getInt();
-                                    if (number != 0) {
-                                        int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "chance at perks").getInt() - 1) + 1;
-                                        if (rng == 1) {
+                                    accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "nextPerkIncreaseLevel").getInt()) {
+                                if (ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                    if (ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                        int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "chance at perks").getInt();
+                                        if (PixelSkills.getRandom().nextInt(100) < number) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
+                                            if (e.pokemon.stats.IVs.Attack != 31) {
+                                                e.pokemon.stats.IVs.Attack = ((e.pokemon.stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Attack;
+                                            }
+                                            if (e.pokemon.stats.IVs.Defence != 31) {
+                                                e.pokemon.stats.IVs.Defence = ((e.pokemon.stats.IVs.Defence / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Defence;
+                                            }
+                                            if (e.pokemon.stats.IVs.SpAtt != 31) {
+                                                e.pokemon.stats.IVs.SpAtt = ((e.pokemon.stats.IVs.SpAtt / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.SpAtt;
+                                            }
+                                            if (e.pokemon.stats.IVs.SpDef != 31) {
+                                                e.pokemon.stats.IVs.SpDef = ((e.pokemon.stats.IVs.SpDef / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.SpDef;
+                                            }
+                                            if (e.pokemon.stats.IVs.Speed != 31) {
+                                                e.pokemon.stats.IVs.Speed = ((e.pokemon.stats.IVs.Speed / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Speed;
+                                            }
+                                            if (e.pokemon.stats.IVs.HP != 31) {
+                                                e.pokemon.stats.IVs.HP = ((e.pokemon.stats.IVs.HP / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.HP;
+                                            }
+                                            e.pokemon.updateStats();
+                                        }
+                                    } else {
+                                        if (PixelSkills.getRandom().nextInt(100) < ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt()) {
                                             player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
                                             if (e.pokemon.stats.IVs.Attack != 31) {
                                                 e.pokemon.stats.IVs.Attack = ((e.pokemon.stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Attack;
@@ -69,29 +90,26 @@ public class Archaeologist {
                                         }
                                     }
                                 } else {
-                                    int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Archaeologist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                    if (rng == 1) {
-                                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
-                                        if (e.pokemon.stats.IVs.Attack != 31) {
-                                            e.pokemon.stats.IVs.Attack = ((e.pokemon.stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Attack;
-                                        }
-                                        if (e.pokemon.stats.IVs.Defence != 31) {
-                                            e.pokemon.stats.IVs.Defence = ((e.pokemon.stats.IVs.Defence / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Defence;
-                                        }
-                                        if (e.pokemon.stats.IVs.SpAtt != 31) {
-                                            e.pokemon.stats.IVs.SpAtt = ((e.pokemon.stats.IVs.SpAtt / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.SpAtt;
-                                        }
-                                        if (e.pokemon.stats.IVs.SpDef != 31) {
-                                            e.pokemon.stats.IVs.SpDef = ((e.pokemon.stats.IVs.SpDef / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.SpDef;
-                                        }
-                                        if (e.pokemon.stats.IVs.Speed != 31) {
-                                            e.pokemon.stats.IVs.Speed = ((e.pokemon.stats.IVs.Speed / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Speed;
-                                        }
-                                        if (e.pokemon.stats.IVs.HP != 31) {
-                                            e.pokemon.stats.IVs.HP = ((e.pokemon.stats.IVs.HP / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.HP;
-                                        }
-                                        e.pokemon.updateStats();
+                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
+                                    if (e.pokemon.stats.IVs.Attack != 31) {
+                                        e.pokemon.stats.IVs.Attack = ((e.pokemon.stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Attack;
                                     }
+                                    if (e.pokemon.stats.IVs.Defence != 31) {
+                                        e.pokemon.stats.IVs.Defence = ((e.pokemon.stats.IVs.Defence / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Defence;
+                                    }
+                                    if (e.pokemon.stats.IVs.SpAtt != 31) {
+                                        e.pokemon.stats.IVs.SpAtt = ((e.pokemon.stats.IVs.SpAtt / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.SpAtt;
+                                    }
+                                    if (e.pokemon.stats.IVs.SpDef != 31) {
+                                        e.pokemon.stats.IVs.SpDef = ((e.pokemon.stats.IVs.SpDef / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.SpDef;
+                                    }
+                                    if (e.pokemon.stats.IVs.Speed != 31) {
+                                        e.pokemon.stats.IVs.Speed = ((e.pokemon.stats.IVs.Speed / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.Speed;
+                                    }
+                                    if (e.pokemon.stats.IVs.HP != 31) {
+                                        e.pokemon.stats.IVs.HP = ((e.pokemon.stats.IVs.HP / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Archaeologist", "Level").getInt() / 2)) + e.pokemon.stats.IVs.HP;
+                                    }
+                                    e.pokemon.updateStats();
                                 }
                             }
                         }

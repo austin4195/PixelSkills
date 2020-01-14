@@ -36,22 +36,26 @@ public class TreasureHunter {
                     plugin.levelUp("Treasure Hunter", player);
                     if (ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
-                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "Level").getInt()) {
-                            Random rand = new Random();
-                            if (ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "chance at perks").getInt() != 0) {
-                                    int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "chance at perks").getInt() - 1) + 1;
-                                    if (rng == 1) {
+                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "nextPerkIncreaseLevel").getInt()) {
+                            if (ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                if (ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                    if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "chance at perks").getInt() != 0) {
+                                        int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Treasure Hunter", "chance at perks").getInt();
+                                        if (PixelSkills.getRandom().nextInt(100) < number) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The chest contained another chest!"));
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.chest.toString() + " 1");
+                                        }
+                                    }
+                                } else {
+                                    int number = ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
                                         player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The chest contained another chest!"));
                                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.chest.toString() + " 1");
                                     }
                                 }
                             } else {
-                                int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Treasure Hunter", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The chest contained another chest!"));
-                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.chest.toString() + " 1");
-                                }
+                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The chest contained another chest!"));
+                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.chest.toString() + " 1");
                             }
                         }
                     }

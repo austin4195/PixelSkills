@@ -36,23 +36,26 @@ public class Botanist {
                 plugin.levelUp("Botanist", player);
                 if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                     if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
-                            accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "Level").getInt()) {
-                        Random rand = new Random();
-                        if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                            int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "chance at perks").getInt();
-                            if (number != 0) {
-                                int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "chance at perks").getInt() - 1) + 1;
-                                if (rng == 1) {
+                            accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "nextPerkIncreaseLevel").getInt()) {
+                        if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                            if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "chance at perks").getInt();
+                                if (number != 0) {
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
+                                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden Apricorns!"));
+                                        Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.apricorn.name() + " 2");
+                                    }
+                                }
+                            } else {
+                                int number = ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                if (PixelSkills.getRandom().nextInt(100) < number) {
                                     player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden Apricorns!"));
                                     Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.apricorn.name() + " 2");
                                 }
                             }
                         } else {
-                            int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                            if (rng == 1) {
-                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden Apricorns!"));
-                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.apricorn.name() + " 2");
-                            }
+                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden Apricorns!"));
+                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.apricorn.name() + " 2");
                         }
                     }
                 }
@@ -73,19 +76,23 @@ public class Botanist {
                     if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
                                 accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "Level").getInt()) {
-                            Random rand = new Random();
-                            if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "chance at perks").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden berries!"));
-                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.berry.name() + " 2");
+                            if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                if (ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                    int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Botanist", "chance at perks").getInt();
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
+                                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden berries!"));
+                                        Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.berry.name() + " 2");
+                                    }
+                                } else {
+                                    int number = ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
+                                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden berries!"));
+                                        Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.berry.name() + " 2");
+                                    }
                                 }
                             } else {
-                                int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Botanist", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden berries!"));
-                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.berry.name() + " 2");
-                                }
+                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some hidden berries!"));
+                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + e.berry.name() + " 2");
                             }
                         }
                     }

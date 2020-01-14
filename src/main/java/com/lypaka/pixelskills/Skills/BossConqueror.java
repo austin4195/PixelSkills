@@ -43,22 +43,24 @@ public class BossConqueror {
                     plugin.levelUp("Boss Conqueror", player);
                     if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
-                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "Level").getInt()) {
-                            Random rand = new Random();
-                            if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt() != 0) {
-                                    int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt() - 1) + 1;
-                                    if (rng == 1) {
+                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "nextPerkIncreaseLevel").getInt()) {
+                            if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                    if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt() != 0) {
+                                        if (PixelSkills.getRandom().nextInt(100) < accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt()) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
+                                        }
+                                    }
+                                } else {
+                                    if (PixelSkills.getRandom().nextInt(100) < ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt()) {
                                         player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
                                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                                     }
                                 }
                             } else {
-                                int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
-                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
-                                }
+                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                             }
                         }
                     }
@@ -72,21 +74,25 @@ public class BossConqueror {
                     if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
                                 accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "Level").getInt()) {
-                            Random rand = new Random();
-                            if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt() != 0) {
-                                    int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt() - 1) + 1;
-                                    if (rng == 1) {
+                            if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                if (ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                    if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt() != 0) {
+                                        int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "chance at perks").getInt();
+                                        if (PixelSkills.getRandom().nextInt(100) < number) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
+                                        }
+                                    }
+                                } else {
+                                    int number = ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
                                         player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
                                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                                     }
                                 }
                             } else {
-                                int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Boss Conqueror", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
-                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
-                                }
+                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                             }
                         }
                     }
@@ -101,21 +107,25 @@ public class BossConqueror {
                         if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                             if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
                                     accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "Level").getInt()) {
-                                Random rand = new Random();
-                                if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                    if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt() != 0) {
-                                        int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt() - 1) + 1;
-                                        if (rng == 1) {
-                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                                if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                    if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                        if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt() != 0) {
+                                            int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt();
+                                            if (PixelSkills.getRandom().nextInt(100) < number) {
+                                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
+                                            }
+                                        }
+                                    } else {
+                                        int number = ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                        if (PixelSkills.getRandom().nextInt(100) < number) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The Pokemon dropped 3 extra Ultra Balls!"));
                                             Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                                         }
                                     }
                                 } else {
-                                    int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                    if (rng == 1) {
-                                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The Pokemon dropped 3 extra Ultra Balls!"));
-                                        Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
-                                    }
+                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The Pokemon dropped 3 extra Ultra Balls!"));
+                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                                 }
                             }
                         }
@@ -132,21 +142,25 @@ public class BossConqueror {
                     if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
                                 accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Boss Conqueror", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "Level").getInt()) {
-                            Random rand = new Random();
-                            if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt() != 0) {
-                                    int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt() - 1) + 1;
-                                    if (rng == 1) {
-                                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                            if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                if (ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                    if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt() != 0) {
+                                        int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Poke Exterminator", "chance at perks").getInt();
+                                        if (PixelSkills.getRandom().nextInt(100) < number) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The boss dropped 3 extra Ultra Balls!"));
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
+                                        }
+                                    }
+                                } else {
+                                    int number = ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
+                                        player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The Pokemon dropped 3 extra Ultra Balls!"));
                                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                                     }
                                 }
                             } else {
-                                int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Poke Exterminator", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The Pokemon dropped 3 extra Ultra Balls!"));
-                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
-                                }
+                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " The Pokemon dropped 3 extra Ultra Balls!"));
+                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " pixelmon:ultra_ball 3");
                             }
                         }
                     }

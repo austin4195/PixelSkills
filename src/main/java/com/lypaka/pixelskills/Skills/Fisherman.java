@@ -38,22 +38,26 @@ public class Fisherman {
                     plugin.levelUp("Fisherman", player);
                     if (ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
-                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "Level").getInt()) {
-                            Random rand = new Random();
-                            if (ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "chance at perks").getInt() != 0) {
-                                    int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "chance at perks").getInt() - 1) + 1;
-                                    if (rng == 1) {
+                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "nextPerkIncreaseLevel").getInt()) {
+                            if (ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                if (ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                    if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "chance at perks").getInt() != 0) {
+                                        int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Fisherman", "chance at perks").getInt();
+                                        if (PixelSkills.getRandom().nextInt(100) < number) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " A Poke Ball got fished up with the Pokemon!"));
+                                            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + "pixelmon:poke_ball 1");
+                                        }
+                                    }
+                                } else {
+                                    int number = ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
                                         player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " A Poke Ball got fished up with the Pokemon!"));
                                         Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + "pixelmon:poke_ball 1");
                                     }
                                 }
                             } else {
-                                int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Fisherman", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " You found some leftover material and made more!"));
-                                    Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + "pixelmon:poke_ball 1");
-                                }
+                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " A Poke Ball got fished up with the Pokemon!"));
+                                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + "pixelmon:poke_ball 1");
                             }
                         }
                     }

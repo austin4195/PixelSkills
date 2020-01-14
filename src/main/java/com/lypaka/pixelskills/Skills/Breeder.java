@@ -41,12 +41,37 @@ public class Breeder {
                     plugin.levelUp("Breeder", player);
                     if (ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "isEnabled").getValue().equals(true)) {
                         if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() == ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "perk", "starts at level").getInt() ||
-                                 accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "nextIncreaseLevel").getInt() - ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "chance", "increased by", "every <level> level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt()) {
-                            Random rand = new Random();
-                            if (ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
-                                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "chance at perks").getInt() != 0) {
-                                    int rng = rand.nextInt(accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "chance at perks").getInt() - 1) + 1;
-                                    if (rng == 1) {
+                                accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() == accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "nextPerkIncreaseLevel").getInt()) {
+                            if (ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt() != 0) {
+                                if (ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "chance gets higher as level gets higher").getValue().equals(true)) {
+                                    if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "chance at perks").getInt() != 0) {
+                                        int number = accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "chance at perks").getInt();
+                                        if (PixelSkills.getRandom().nextInt(100) < number) {
+                                            player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
+                                            if (e.getEgg().stats.IVs.Attack != 31) {
+                                                e.getEgg().stats.IVs.Attack = ((e.getEgg().stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Attack;
+                                            }
+                                            if (e.getEgg().stats.IVs.Defence != 31) {
+                                                e.getEgg().stats.IVs.Defence = ((e.getEgg().stats.IVs.Defence / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Defence;
+                                            }
+                                            if (e.getEgg().stats.IVs.SpAtt != 31) {
+                                                e.getEgg().stats.IVs.SpAtt = ((e.getEgg().stats.IVs.SpAtt / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.SpAtt;
+                                            }
+                                            if (e.getEgg().stats.IVs.SpDef != 31) {
+                                                e.getEgg().stats.IVs.SpDef = ((e.getEgg().stats.IVs.SpDef / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.SpDef;
+                                            }
+                                            if (e.getEgg().stats.IVs.Speed != 31) {
+                                                e.getEgg().stats.IVs.Speed = ((e.getEgg().stats.IVs.Speed / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Speed;
+                                            }
+                                            if (e.getEgg().stats.IVs.HP != 31) {
+                                                e.getEgg().stats.IVs.HP = ((e.getEgg().stats.IVs.HP / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.HP;
+                                            }
+                                            e.getEgg().updateStats();
+                                        }
+                                    }
+                                } else {
+                                    int number = ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>)").getInt();
+                                    if (PixelSkills.getRandom().nextInt(100) < number) {
                                         player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
                                         if (e.getEgg().stats.IVs.Attack != 31) {
                                             e.getEgg().stats.IVs.Attack = ((e.getEgg().stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Attack;
@@ -70,29 +95,26 @@ public class Breeder {
                                     }
                                 }
                             } else {
-                                int rng = rand.nextInt(ConfigManager.getConfigNode("Skills", "Breeder", "Perks", "in-skill perks", "chance of triggering at task completed (1/<number>) (1/100 = 1% chance)").getInt() - 1) + 1;
-                                if (rng == 1) {
-                                    player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
-                                    if (e.getEgg().stats.IVs.Attack != 31) {
-                                        e.getEgg().stats.IVs.Attack = ((e.getEgg().stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Attack;
-                                    }
-                                    if (e.getEgg().stats.IVs.Defence != 31) {
-                                        e.getEgg().stats.IVs.Defence = ((e.getEgg().stats.IVs.Defence / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Defence;
-                                    }
-                                    if (e.getEgg().stats.IVs.SpAtt != 31) {
-                                        e.getEgg().stats.IVs.SpAtt = ((e.getEgg().stats.IVs.SpAtt / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.SpAtt;
-                                    }
-                                    if (e.getEgg().stats.IVs.SpDef != 31) {
-                                        e.getEgg().stats.IVs.SpDef = ((e.getEgg().stats.IVs.SpDef / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.SpDef;
-                                    }
-                                    if (e.getEgg().stats.IVs.Speed != 31) {
-                                        e.getEgg().stats.IVs.Speed = ((e.getEgg().stats.IVs.Speed / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Speed;
-                                    }
-                                    if (e.getEgg().stats.IVs.HP != 31) {
-                                        e.getEgg().stats.IVs.HP = ((e.getEgg().stats.IVs.HP / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.HP;
-                                    }
-                                    e.getEgg().updateStats();
+                                player.sendMessage(Text.of(TextColors.GOLD, "[", TextColors.DARK_RED, "PixelSkills", TextColors.GOLD, "]", TextColors.WHITE, " Your experience tells you this Pokemon will be a good one!"));
+                                if (e.getEgg().stats.IVs.Attack != 31) {
+                                    e.getEgg().stats.IVs.Attack = ((e.getEgg().stats.IVs.Attack / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Attack;
                                 }
+                                if (e.getEgg().stats.IVs.Defence != 31) {
+                                    e.getEgg().stats.IVs.Defence = ((e.getEgg().stats.IVs.Defence / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Defence;
+                                }
+                                if (e.getEgg().stats.IVs.SpAtt != 31) {
+                                    e.getEgg().stats.IVs.SpAtt = ((e.getEgg().stats.IVs.SpAtt / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.SpAtt;
+                                }
+                                if (e.getEgg().stats.IVs.SpDef != 31) {
+                                    e.getEgg().stats.IVs.SpDef = ((e.getEgg().stats.IVs.SpDef / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.SpDef;
+                                }
+                                if (e.getEgg().stats.IVs.Speed != 31) {
+                                    e.getEgg().stats.IVs.Speed = ((e.getEgg().stats.IVs.Speed / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.Speed;
+                                }
+                                if (e.getEgg().stats.IVs.HP != 31) {
+                                    e.getEgg().stats.IVs.HP = ((e.getEgg().stats.IVs.HP / 31) * (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Breeder", "Level").getInt() / 2)) + e.getEgg().stats.IVs.HP;
+                                }
+                                e.getEgg().updateStats();
                             }
                         }
                     }
