@@ -8,7 +8,7 @@ import com.codehusky.huskyui.states.element.ActionableElement;
 import com.codehusky.huskyui.states.element.Element;
 import com.google.common.collect.Lists;
 import com.lypaka.pixelskills.PixelSkills;
-import com.lypaka.pixelskills.config.SkillsAccountManager;
+import com.lypaka.pixelskills.Config.SkillsAccountManager;
 import com.pixelmonmod.pixelmon.config.*;
 import com.pixelmonmod.pixelmon.items.PixelmonItemBlock;
 import ninja.leaping.configurate.ConfigurationNode;

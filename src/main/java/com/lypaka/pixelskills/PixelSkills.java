@@ -3,8 +3,8 @@ package com.lypaka.pixelskills;
 import com.google.inject.Inject;
 import com.lypaka.pixelskills.Commands.PixelSkillsCmd;
 import com.lypaka.pixelskills.Skills.*;
-import com.lypaka.pixelskills.config.ConfigManager;
-import com.lypaka.pixelskills.config.SkillsAccountManager;
+import com.lypaka.pixelskills.Config.ConfigManager;
+import com.lypaka.pixelskills.Config.SkillsAccountManager;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import net.minecraftforge.common.MinecraftForge;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -51,11 +51,7 @@ import java.util.UUID;
 public class PixelSkills {
     @Inject
     @DefaultConfig(sharedRoot = false)
-    public ConfigurationLoader<CommentedConfigurationNode> loader;
-
-    @Inject
-    @DefaultConfig(sharedRoot = false)
-    private Path defaultConfig;
+    private ConfigurationLoader<CommentedConfigurationNode> loader;
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -63,7 +59,6 @@ public class PixelSkills {
 
     @Inject
     private PluginContainer container;
-
 
     @Inject
     private Logger logger;
@@ -77,15 +72,6 @@ public class PixelSkills {
 
     @Listener
     public void onPreInit (GamePreInitializationEvent event) {
-        try {
-            config = loader.load();
-            if (!defaultConfig.toFile().exists()) {
-                config.getNode("Sets whether to use Pixelmon's currency (true) or a Sponge economy plugin's currency (false) for money rewards").setValue(false);
-                loader.save(config);
-            }
-        } catch (IOException e){
-            e.printStackTrace();
-        }
         accountManager = new SkillsAccountManager(this);
         ConfigManager.setup(configDir);
 
@@ -248,7 +234,7 @@ public class PixelSkills {
                                         //Checks to see if there are multiple items in the reward list
                                         if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                             String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                            for (int r = 0; r <= rewardList.length; r++) {
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
                                                 Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantityBase);
                                             }
                                         } else {
@@ -259,7 +245,7 @@ public class PixelSkills {
                                         int rewardQuantityAdd = rewardQuantityBase + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt();
                                         if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                             String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                            for (int r = 0; r <= rewardList.length; r++) {
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
                                                 Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantityAdd);
                                             }
                                         } else {
@@ -270,7 +256,7 @@ public class PixelSkills {
                                         int rewardQuantityMulti = rewardQuantityBase * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt();
                                         if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                             String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                            for (int r = 0; r <= rewardList.length; r++) {
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
                                                 Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantityMulti);
                                             }
                                         } else {
@@ -288,7 +274,7 @@ public class PixelSkills {
                                         //Checks to see if there are multiple items in the reward list
                                         if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                             String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                            for (int r = 0; r <= rewardList.length; r++) {
+                                            for (int r = 0; r <= rewardList.length - 1; r++) {
                                                 Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "pokegive " + player.getName() + " " + rewardList[r]);
                                             }
                                         } else {
@@ -328,7 +314,7 @@ public class PixelSkills {
                             case "command":
                                 if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                     String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                    for (int c = 0; c < rewardList.length; c++) {
+                                    for (int c = 0; c < rewardList.length - 1; c++) {
                                         System.out.println(rewardList[c]);
                                         if (rewardList[c].contains("%player%")) {
                                             Sponge.getCommandManager().process(Sponge.getServer().getConsole(), rewardList[c].replace("%player%", player.getName()));
@@ -361,7 +347,7 @@ public class PixelSkills {
                                             //Checks to see if there are multiple items in the reward list
                                             if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                                 String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                                for (int r = 0; r <= rewardList.length; r++) {
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
                                                     Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity);
                                                 }
                                             } else {
@@ -371,7 +357,7 @@ public class PixelSkills {
                                         case "add":
                                             if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                                 String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                                for (int r = 0; r <= rewardList.length; r++) {
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
                                                     Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + (rewardQuantity + accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt()));
                                                 }
                                             } else {
@@ -381,7 +367,7 @@ public class PixelSkills {
                                         case "multiply":
                                             if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                                 String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                                for (int r = 0; r <= rewardList.length; r++) {
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
                                                     Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "give " + player.getName() + " " + rewardList[r] + " " + rewardQuantity * accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt());
                                                 }
                                             } else {
@@ -399,7 +385,7 @@ public class PixelSkills {
                                             //Checks to see if there are multiple items in the reward list
                                             if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                                 String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                                for (int r = 0; r <= rewardList.length; r++) {
+                                                for (int r = 0; r <= rewardList.length - 1; r++) {
                                                     Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "pokegive " + player.getName() + " " + rewardList[r]);
                                                 }
                                             } else {
@@ -496,13 +482,6 @@ public class PixelSkills {
                 }
             }
         }
-    }
-
-    public static boolean getIsMaxLevel(String skill, Player player) {
-        if (PixelSkills.INSTANCE.accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", skill, "Level").getInt() == ConfigManager.getConfigNode("Skills", skill, "maxLevel").getInt()) {
-            return true;
-        }
-        return false;
     }
 
     public static final Random getRandom() {

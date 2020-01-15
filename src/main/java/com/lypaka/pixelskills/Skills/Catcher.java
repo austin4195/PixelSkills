@@ -1,8 +1,8 @@
 package com.lypaka.pixelskills.Skills;
 
 import com.lypaka.pixelskills.PixelSkills;
-import com.lypaka.pixelskills.config.ConfigManager;
-import com.lypaka.pixelskills.config.SkillsAccountManager;
+import com.lypaka.pixelskills.Config.ConfigManager;
+import com.lypaka.pixelskills.Config.SkillsAccountManager;
 import com.pixelmonmod.pixelmon.api.events.CaptureEvent;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -10,8 +10,6 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-import java.util.Random;
 
 public class Catcher {
     /**
@@ -35,7 +33,7 @@ public class Catcher {
         if (e.getPokemon().isShiny()) {
             if (ConfigManager.getConfigNode("Skills", "Shiny Hunter", "isEnabled").getValue().equals(true)) {
                 Player player = (Player) e.player;
-                if (!PixelSkills.getIsMaxLevel("Shiny Hunter", player)) {
+                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Shiny Hunter", "Level").getInt() < ConfigManager.getConfigNode("Skills", "Shiny Hunter", "maxLevel").getInt()) {
                     //I'm not sure why they would have Shiny Hunting enabled but have the only task for it disabled, but here we go
                     if (ConfigManager.getConfigNode("Skills", "Shiny Hunter", "EXP", "Tasks", "Catching shinies", "isEnabled").getValue().equals(true)) {
                         int exp = ConfigManager.getConfigNode("Skills", "Shiny Hunter", "EXP", "Tasks", "Catching shinies", "EXP gained per").getInt() * ConfigManager.getConfigNode("Skills", "Shiny Hunter", "EXP", "expModifier").getInt();
@@ -128,7 +126,7 @@ public class Catcher {
         } else if (isLegendary(e.getPokemon())) {
             if (ConfigManager.getConfigNode("Skills", "Legendary Master", "isEnabled").getValue().equals(true)) {
                 Player player = (Player) e.player;
-                if (!PixelSkills.getIsMaxLevel("Legendary Master", player)) {
+                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Legendary Master", "Level").getInt() < ConfigManager.getConfigNode("Skills", "Legendary Master", "maxLevel").getInt()) {
                     //I'm not sure why they would have Legendary Hunter enabled but have the only task for it disabled, but here we go
                     if (ConfigManager.getConfigNode("Skills", "Legendary Master", "EXP", "Tasks", "Catching legendaries", "isEnabled").getValue().equals(true)) {
                         int exp = ConfigManager.getConfigNode("Skills", "Legendary Master", "EXP", "Tasks", "Catching legendaries", "EXP gained per").getInt() * ConfigManager.getConfigNode("Skills", "Legendary Master", "EXP", "expModifier").getInt();
@@ -222,7 +220,7 @@ public class Catcher {
         } else if (!e.getPokemon().isShiny() && !isLegendary(e.getPokemon())) {
             if (ConfigManager.getConfigNode("Skills", "Catcher", "isEnabled").getValue().equals(true)) {
                 Player player = (Player) e.player;
-                if (!PixelSkills.getIsMaxLevel("Catcher", player)) {
+                if (accountManager.getAccountsConfig().getNode(player.getUniqueId().toString(), "Skills", "Catcher", "Level").getInt() < ConfigManager.getConfigNode("Skills", "Catcher", "maxLevel").getInt()) {
                     //I'm not sure why they would have Catcher enabled but have the only task for it disabled, but here we go
                     if (ConfigManager.getConfigNode("Skills", "Catcher", "EXP", "Tasks", "Catching normal Pokemon", "isEnabled").getValue().equals(true)) {
                         int exp = ConfigManager.getConfigNode("Skills", "Catcher", "EXP", "Tasks", "Catching normal Pokemon", "EXP gained per").getInt() * ConfigManager.getConfigNode("Skills", "Catcher", "EXP", "expModifier").getInt();
