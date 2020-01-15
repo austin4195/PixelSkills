@@ -314,8 +314,7 @@ public class PixelSkills {
                             case "command":
                                 if (ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().contains(", ")) {
                                     String[] rewardList = ConfigManager.getConfigNode("Skills", skill, "Rewards", "rewards", "Reward " + n, "reward", "prize").getString().split(", ");
-                                    for (int c = 0; c < rewardList.length - 1; c++) {
-                                        System.out.println(rewardList[c]);
+                                    for (int c = 0; c < rewardList.length; c++) {
                                         if (rewardList[c].contains("%player%")) {
                                             Sponge.getCommandManager().process(Sponge.getServer().getConsole(), rewardList[c].replace("%player%", player.getName()));
                                         } else {
