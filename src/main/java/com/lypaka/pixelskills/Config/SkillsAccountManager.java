@@ -1,4 +1,4 @@
-package com.lypaka.pixelskills.config;
+package com.lypaka.pixelskills.Config;
 
 import com.lypaka.pixelskills.PixelSkills;
 import ninja.leaping.configurate.ConfigurationNode;
